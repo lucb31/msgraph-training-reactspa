@@ -12,15 +12,30 @@ import withAuthProvider, { AuthComponentProps } from './AuthProvider';
 import CalendarDayRow from './CalendarDayRow';
 import './Calendar.css';
 
+// MGT
+import { Providers, SimpleProvider } from '@microsoft/mgt';
+import { Agenda, MgtTemplateProps } from '@microsoft/mgt-react';
+
 interface CalendarState {
   eventsLoaded: boolean;
   events: Event[];
   startOfWeek: Moment | undefined;
 }
 
+const MyEvent = (props: MgtTemplateProps) => {
+  const { event } = props.dataContext;
+  return <div>{event.subject}</div>;
+};
+
 class Calendar extends React.Component<AuthComponentProps, CalendarState> {
+  mgtProvider: SimpleProvider = new SimpleProvider(async (scopes: string[]) => {
+    return await this.props.getAccessToken(scopes);
+  });
+
   constructor(props: any) {
     super(props);
+
+    Providers.globalProvider = this.mgtProvider;
     this.state = {
       eventsLoaded: false,
       events: [],
@@ -72,55 +87,16 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     var friday = moment(thursday).add(1, 'day');
     var saturday = moment(friday).add(1, 'day');
 
+    // Agenda is in mgt-react package, which isn't mentioned in docs
     return (
       <div>
         <div className="mb-3">
           <h1 className="mb-3">{sunday.format('MMMM D, YYYY')} - {saturday.format('MMMM D, YYYY')}</h1>
           <RouterNavLink to="/newevent" className="btn btn-light btn-sm" exact>New event</RouterNavLink>
         </div>
-        <div className="calendar-week">
-          <div className="table-responsive">
-            <Table size="sm">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Event</th>
-                </tr>
-              </thead>
-              <tbody>
-                <CalendarDayRow
-                  date={sunday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(event => moment(event.start?.dateTime).day() === sunday.day()) } />
-                <CalendarDayRow
-                  date={monday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(event => moment(event.start?.dateTime).day() === monday.day()) } />
-                <CalendarDayRow
-                  date={tuesday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(event => moment(event.start?.dateTime).day() === tuesday.day()) } />
-                <CalendarDayRow
-                  date={wednesday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(event => moment(event.start?.dateTime).day() === wednesday.day()) } />
-                <CalendarDayRow
-                  date={thursday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(event => moment(event.start?.dateTime).day() === thursday.day()) } />
-                <CalendarDayRow
-                  date={friday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(event => moment(event.start?.dateTime).day() === friday.day()) } />
-                <CalendarDayRow
-                  date={saturday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(event => moment(event.start?.dateTime).day() === saturday.day()) } />
-              </tbody>
-            </Table>
-          </div>
-        </div>
+        <Agenda
+          events={this.state.events}
+          groupByDay={true} />
       </div>
     );
   }

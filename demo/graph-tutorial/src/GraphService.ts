@@ -50,7 +50,7 @@ export async function getUserWeekCalendar(accessToken: string, timeZone: string,
     .api('/me/calendarview')
     .header("Prefer", `outlook.timezone="${timeZone}"`)
     .query({ startDateTime: startDateTime, endDateTime: endDateTime })
-    .select('subject,organizer,start,end')
+    .select('subject,organizer,start,end,location,attendees')
     .orderby('start/dateTime')
     .top(50)
     .get();
