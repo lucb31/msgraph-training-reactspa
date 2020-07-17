@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 import React from 'react';
-import { UserAgentApplication } from 'msal';
+import { ClientAuthError, InteractionRequiredAuthError, UserAgentApplication } from 'msal';
 
 import { config } from './Config';
 import { getUserDetails } from './GraphService';
@@ -110,11 +110,21 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
         // If a silent request fails, it may be because the user needs
         // to login or grant consent to one or more of the requested scopes
         if (this.isInteractionRequired(err)) {
-          var interactiveResult = await this.userAgentApplication.acquireTokenPopup({
-            scopes: scopes
-          });
+          try {
+            var interactiveResult = await this.userAgentApplication.acquireTokenPopup({
+              scopes: scopes
+            });
 
-          return interactiveResult.accessToken;
+            return interactiveResult.accessToken;
+          } catch (interactiveErr)
+          {
+            var clientError = interactiveErr as ClientAuthError;
+            if (clientError.errorCode === 'popup_window_error')
+            {
+              throw new Error('In order to proceed, you need to re-authenticate in a pop-up window. Please enable pop-up windows for this site to continue.');
+            }
+            throw interactiveErr;
+          }
         } else {
           throw err;
         }
@@ -173,16 +183,15 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
       return normalizedError;
     }
 
-    isInteractionRequired(error: Error): boolean {
-      if (!error.message || error.message.length <= 0) {
-        return false;
+    isInteractionRequired(error: any): boolean {
+      // Is this an InteractionRequiredAuthError?
+      var interactionRequiredErr = error as InteractionRequiredAuthError;
+      if (interactionRequiredErr?.name === 'InteractionRequiredAuthError')
+      {
+        return true;
       }
 
-      return (
-        error.message.indexOf('consent_required') > -1 ||
-        error.message.indexOf('interaction_required') > -1 ||
-        error.message.indexOf('login_required') > -1
-      );
+      return false;
     }
   }
 }
