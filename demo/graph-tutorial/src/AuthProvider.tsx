@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 import React from 'react';
-import { UserAgentApplication } from 'msal';
+import { PublicClientApplication } from '@azure/msal-browser';
 
 import { config } from './Config';
 import { getUserDetails } from './GraphService';
@@ -23,9 +23,9 @@ interface AuthProviderState {
 }
 
 export default function withAuthProvider<T extends React.Component<AuthComponentProps>>
-  (WrappedComponent: new(props: AuthComponentProps, context?: any) => T): React.ComponentClass {
+  (WrappedComponent: new (props: AuthComponentProps, context?: any) => T): React.ComponentClass {
   return class extends React.Component<any, AuthProviderState> {
-    private userAgentApplication: UserAgentApplication;
+    private publicClientApplication: PublicClientApplication;
 
     constructor(props: any) {
       super(props);
@@ -36,14 +36,14 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
       };
 
       // Initialize the MSAL application object
-      this.userAgentApplication = new UserAgentApplication({
+      this.publicClientApplication = new PublicClientApplication({
         auth: {
-            clientId: config.appId,
-            redirectUri: config.redirectUri
+          clientId: config.appId,
+          redirectUri: config.redirectUri
         },
         cache: {
-            cacheLocation: "sessionStorage",
-            storeAuthStateInCookie: true
+          cacheLocation: "sessionStorage",
+          storeAuthStateInCookie: true
         }
       });
     }
@@ -51,9 +51,9 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
     componentDidMount() {
       // If MSAL already has an account, the user
       // is already logged in
-      var account = this.userAgentApplication.getAccount();
+      const accounts = this.publicClientApplication.getAllAccounts();
 
-      if (account) {
+      if (accounts && accounts.length > 0) {
         // Enhance user object with data from Graph
         this.getUserProfile();
       }
@@ -61,28 +61,29 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
 
     render() {
       return <WrappedComponent
-        error = { this.state.error }
-        isAuthenticated = { this.state.isAuthenticated }
-        user = { this.state.user }
-        login = { () => this.login() }
-        logout = { () => this.logout() }
-        getAccessToken = { (scopes: string[]) => this.getAccessToken(scopes)}
-        setError = { (message: string, debug: string) => this.setErrorMessage(message, debug)}
-        {...this.props} {...this.state} />;
+        error={this.state.error}
+        isAuthenticated={this.state.isAuthenticated}
+        user={this.state.user}
+        login={() => this.login()}
+        logout={() => this.logout()}
+        getAccessToken={(scopes: string[]) => this.getAccessToken(scopes)}
+        setError={(message: string, debug: string) => this.setErrorMessage(message, debug)}
+        {...this.props} />;
     }
 
     async login() {
       try {
         // Login via popup
-        await this.userAgentApplication.loginPopup(
-            {
-              scopes: config.scopes,
-              prompt: "select_account"
+        await this.publicClientApplication.loginPopup(
+          {
+            scopes: config.scopes,
+            prompt: "select_account"
           });
+
         // After login, get the user's profile
         await this.getUserProfile();
       }
-      catch(err) {
+      catch (err) {
         this.setState({
           isAuthenticated: false,
           user: {},
@@ -92,27 +93,34 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
     }
 
     logout() {
-      this.userAgentApplication.logout();
+      this.publicClientApplication.logout();
     }
 
     async getAccessToken(scopes: string[]): Promise<string> {
       try {
+        const accounts = this.publicClientApplication
+          .getAllAccounts();
+
+        if (accounts.length <= 0) throw new Error('login_required');
         // Get the access token silently
         // If the cache contains a non-expired token, this function
         // will just return the cached token. Otherwise, it will
         // make a request to the Azure OAuth endpoint to get a token
-        var silentResult = await this.userAgentApplication.acquireTokenSilent({
-          scopes: scopes
-        });
+        var silentResult = await this.publicClientApplication
+          .acquireTokenSilent({
+            scopes: scopes,
+            account: accounts[0]
+          });
 
         return silentResult.accessToken;
       } catch (err) {
         // If a silent request fails, it may be because the user needs
         // to login or grant consent to one or more of the requested scopes
         if (this.isInteractionRequired(err)) {
-          var interactiveResult = await this.userAgentApplication.acquireTokenPopup({
-            scopes: scopes
-          });
+          var interactiveResult = await this.publicClientApplication
+            .acquireTokenPopup({
+              scopes: scopes
+            });
 
           return interactiveResult.accessToken;
         } else {
@@ -133,7 +141,9 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
             isAuthenticated: true,
             user: {
               displayName: user.displayName,
-              email: user.mail || user.userPrincipalName
+              email: user.mail || user.userPrincipalName,
+              timeZone: user.mailboxSettings.timeZone,
+              timeFormat: user.mailboxSettings.timeFormat
             },
             error: null
           });
@@ -151,13 +161,13 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
 
     setErrorMessage(message: string, debug: string) {
       this.setState({
-        error: {message: message, debug: debug}
+        error: { message: message, debug: debug }
       });
     }
 
     normalizeError(error: string | Error): any {
       var normalizedError = {};
-      if (typeof(error) === 'string') {
+      if (typeof (error) === 'string') {
         var errParts = error.split('|');
         normalizedError = errParts.length > 1 ?
           { message: errParts[1], debug: errParts[0] } :
@@ -179,7 +189,8 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
       return (
         error.message.indexOf('consent_required') > -1 ||
         error.message.indexOf('interaction_required') > -1 ||
-        error.message.indexOf('login_required') > -1
+        error.message.indexOf('login_required') > -1 ||
+        error.message.indexOf('no_account_in_silent_request') > -1
       );
     }
   }

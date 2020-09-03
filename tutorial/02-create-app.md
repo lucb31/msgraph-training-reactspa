@@ -5,7 +5,7 @@ In this section you'll create a new React app.
 1. Open your command-line interface (CLI), navigate to a directory where you have rights to create files, and run the following commands to create a new React app.
 
     ```Shell
-    npx create-react-app@3.4.0 graph-tutorial --template typescript
+    npx create-react-app@3.4.1 graph-tutorial --template typescript
     ```
 
 1. Once the command finishes, change to the `graph-tutorial` directory in your CLI and run the following command to start a local web server.
@@ -25,14 +25,15 @@ Before moving on, install some additional packages that you will use later:
 - [reactstrap](https://github.com/reactstrap/reactstrap) for React components based on Bootstrap.
 - [fontawesome-free](https://github.com/FortAwesome/Font-Awesome) for icons.
 - [moment](https://github.com/moment/moment) for formatting dates and times.
-- [msal](https://github.com/AzureAD/microsoft-authentication-library-for-js) for authenticating to Azure Active Directory and retrieving access tokens.
+- [windows-iana](https://github.com/rubenillodo/windows-iana) for translating Windows time zones to IANA format.
+- [msal-browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) for authenticating to Azure Active Directory and retrieving access tokens.
 - [microsoft-graph-client](https://github.com/microsoftgraph/msgraph-sdk-javascript) for making calls to Microsoft Graph.
 
 Run the following command in your CLI.
 
 ```Shell
-npm install react-router-dom@5.1.2 @types/react-router-dom@5.1.3 bootstrap@4.4.1 reactstrap@8.4.1 @types/reactstrap@8.4.2
-npm install @fortawesome/fontawesome-free@5.12.1 moment@2.24.0 msal@1.2.1 @microsoft/microsoft-graph-client@2.0.0 @types/microsoft-graph@1.12.0
+npm install react-router-dom@5.2.0 @types/react-router-dom@5.1.5 bootstrap@4.5.2 reactstrap@8.5.1 @types/reactstrap@8.5.1 @fortawesome/fontawesome-free@5.14.0
+npm install moment@2.27.0 moment-timezone@0.5.31 windows-iana@4.2.1 @azure/msal-browser@2.1.0 @microsoft/microsoft-graph-client@2.0.0 @types/microsoft-graph@1.18.0
 ```
 
 ## Design the app
