@@ -4,6 +4,12 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+import { Providers, SimpleProvider } from '@microsoft/mgt';
+
+//Providers.globalProvider = new SimpleProvider(async (scopes: string[]) => {
+//  return 'token';
+//});
+
 ReactDOM.render(
   <React.StrictMode>
     <App />

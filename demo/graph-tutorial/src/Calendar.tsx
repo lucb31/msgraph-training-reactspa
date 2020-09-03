@@ -13,7 +13,7 @@ import CalendarDayRow from './CalendarDayRow';
 import './Calendar.css';
 
 // MGT
-import { Providers, SimpleProvider } from '@microsoft/mgt';
+import { Providers, SimpleProvider, ProviderState } from '@microsoft/mgt';
 import { Agenda, MgtTemplateProps } from '@microsoft/mgt-react';
 
 interface CalendarState {
@@ -36,6 +36,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     super(props);
 
     Providers.globalProvider = this.mgtProvider;
+    Providers.globalProvider.setState(ProviderState.SignedIn);
     this.state = {
       eventsLoaded: false,
       events: [],
