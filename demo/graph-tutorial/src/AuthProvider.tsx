@@ -61,14 +61,14 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
 
     render() {
       return <WrappedComponent
-        error={this.state.error}
-        isAuthenticated={this.state.isAuthenticated}
-        user={this.state.user}
-        login={() => this.login()}
-        logout={() => this.logout()}
-        getAccessToken={(scopes: string[]) => this.getAccessToken(scopes)}
-        setError={(message: string, debug: string) => this.setErrorMessage(message, debug)}
-        {...this.props} />;
+        error={ this.state.error }
+        isAuthenticated={ this.state.isAuthenticated }
+        user={ this.state.user }
+        login={ () => this.login() }
+        logout={ () => this.logout() }
+        getAccessToken={ (scopes: string[]) => this.getAccessToken(scopes) }
+        setError={ (message: string, debug: string) => this.setErrorMessage(message, debug) }
+        { ...this.props } />;
     }
 
     async login() {
@@ -142,7 +142,7 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
             user: {
               displayName: user.displayName,
               email: user.mail || user.userPrincipalName,
-              timeZone: user.mailboxSettings.timeZone,
+              timeZone: user.mailboxSettings.timeZone || 'UTC',
               timeFormat: user.mailboxSettings.timeFormat
             },
             error: null
