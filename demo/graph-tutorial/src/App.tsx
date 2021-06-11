@@ -9,6 +9,7 @@ import ErrorMessage from './ErrorMessage';
 import Welcome from './Welcome';
 import Calendar from './Calendar';
 import NewEvent from './NewEvent';
+import Teams from "./Teams";
 import 'bootstrap/dist/css/bootstrap.css';
 
 class App extends Component<AuthComponentProps> {
@@ -38,11 +39,18 @@ class App extends Component<AuthComponentProps> {
                   authButtonMethod={this.props.login} />
               } />
             <Route exact path="/calendar"
-              render={(props) =>
-                this.props.isAuthenticated ?
-                  <Calendar {...props} /> :
-                  <Redirect to="/" />
-              } />
+                   render={(props) =>
+                       this.props.isAuthenticated ?
+                           <Calendar {...props} /> :
+                           <Redirect to="/" />
+               } />
+            <Route exact path="/teams"
+                   render={(props) =>
+                       this.props.isAuthenticated ?
+                           <Teams {...props} /> :
+                           <Redirect to="/" />
+               } />
+
             <Route exact path="/newevent"
               render={(props) =>
                 this.props.isAuthenticated ?

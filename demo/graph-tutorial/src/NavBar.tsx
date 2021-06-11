@@ -95,11 +95,17 @@ export default class NavBar extends React.Component<NavBarProps, NavBarState> {
   render() {
     // Only show calendar nav item if logged in
     let calendarLink = null;
+    let teamsLink = null;
     if (this.props.isAuthenticated) {
       calendarLink = (
         <NavItem>
           <RouterNavLink to="/calendar" className="nav-link" exact>Calendar</RouterNavLink>
         </NavItem>
+      );
+      teamsLink = (
+          <NavItem>
+            <RouterNavLink to="/teams" className="nav-link" exact>Teams</RouterNavLink>
+          </NavItem>
       );
     }
 
@@ -115,6 +121,7 @@ export default class NavBar extends React.Component<NavBarProps, NavBarState> {
                   <RouterNavLink to="/" className="nav-link" exact>Home</RouterNavLink>
                 </NavItem>
                 {calendarLink}
+                {teamsLink}
               </Nav>
               <Nav className="justify-content-end" navbar>
                 <NavItem>
